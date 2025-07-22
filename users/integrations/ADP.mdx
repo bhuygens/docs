@@ -1,0 +1,136 @@
+# ADP Integration Guide
+
+Welcome to the ADP integration guide! This document walks you through how Pivot connects with ADP to streamline your payroll and employee management processes.
+
+## What is ADP Integration?
+
+ADP integration allows you to seamlessly connect your Pivot account with ADP's payroll and HR systems. This means you can:
+
+- **Search and link employees** from your ADP system directly in Pivot
+- **Export payroll data** from Pivot to ADP automatically
+- **Synchronize employee information** between both platforms
+- **Authenticate users** through ADP's secure login system
+
+
+## Setting Up ADP Integration
+
+<Steps>
+  <Step title="Go to integration">
+    Go to your Account Settings and click on the "Integrations" tab. Find the ADP integration card in the Payroll Systems section.
+  </Step>
+  <Step title="Link Your Account">
+    Click the "Link" button on the ADP integration card. You'll be redirected to the ADP Marketplace to complete the subscription process.
+    <Accordion title="Don't forget to write the companyId during the link process on ADP">
+        <img src="logo/logo_pivot.png"/>
+    </Accordion>
+  </Step>
+  <Step title="Automatic Setup">
+    Once you complete the marketplace process, Pivot will automatically:
+    - Store your ADP credentials securely
+    - Fetch your employee list from ADP
+    - Match existing Pivot employees with ADP employees- Set up the integration mapping
+  </Step>
+</Steps>
+
+## Searching for Employees
+
+When you need to link an employee to their ADP record:
+
+<Steps>
+<Step title="Open the Employee Profile">
+Navigate to the employee's profile in Pivot and click on the ADP ID field.
+</Step>
+<Step title="Search for the Employee">
+Type at least 3 characters of the employee's name. The search is automatically debounced (waits 500ms) to avoid excessive API calls.
+</Step>
+<Step title="Select and Link">
+Choose the correct employee from the dropdown. The ADP ID will be automatically stored in the employee's record.
+</Step>
+</Steps>
+
+<Tip> The search uses fuzzy matching, so you don't need to type the exact name - partial matches work great!</Tip>
+
+## Exporting Payroll Data
+
+To send payroll data from Pivot to ADP:
+
+<Steps>
+<Step title="Navigate to Payroll">
+Go to your Payroll section in Pivot and prepare your payroll data as usual.
+</Step>
+<Step title="Export to ADP">
+Click the "Export to ADP" button. Pivot will automatically format and send the data to ADP.
+</Step>
+<Step title="Verify in ADP">
+Check your ADP system to confirm the data was received. The payroll data will be available for processing in ADP.
+</Step>
+</Steps>
+
+## ADP Marketplace
+### Subscribe
+### Cancel
+<Tip>This will remove all ADP employee mappings and integration settings. You can always reconnect later if needed.</Tip>
+
+## User Authentication
+
+### ADP Login Flow
+
+Employees can log in to Pivot using their ADP credentials:
+
+<Steps>
+  <Step title="Choose ADP Login">
+    On the login page, select "Login with ADP". You'll be redirected to ADP's secure login page.
+  </Step>
+  <Step title="Authenticate with ADP">
+    Enter your ADP username and password and authorize Pivot to access your information.
+  </Step>
+  <Step title="Return to Pivot">
+    You'll be automatically redirected back to Pivot and your account will be created or updated automatically.
+  </Step>
+</Steps>
+
+<Tip>All authentication happens through ADP's secure OAuth system, so Pivot never sees your ADP password.</Tip>
+
+
+
+
+## API Endpoints Used
+
+Pivot communicates with ADP through these secure endpoints:
+
+```bash
+# Authentication
+https://accounts.adp.com/auth/oauth/v2/token
+
+# User Information
+https://accounts.adp.com/core/v1/userinfo
+
+# Employee Data
+https://api.adp.com/hr/v2/workers
+
+# Payroll Export
+https://api.adp.com/events/payroll/v1/pay-data-input.modify
+```
+
+## Troubleshoot
+
+If you're experiencing issues with the ADP integration:
+<Steps>
+<Step title="Check Integration Status">
+Go to Account Settings > Integrations and verify ADP shows as "Connected".
+Go to your ADP marketplace profile and check if you're linked to pivot.
+</Step>
+<Step title="ADP Support">
+For ADP-specific issues, contact ADP support directly. They can help with marketplace subscriptions and API access.
+</Step>
+</Steps>
+
+## Assistance
+
+If you need assistance with the ADP integration:
+
+- **ADP Partner Support**: Access the [ADP Partner Self-Service platform](https://partner-self-service.adp.com) for technical support and resources
+- **Credentials**: benjamin@pivotapp.ca (see with him for the password)
+- **Contact:** ben.almeida@adp.com
+
+The ADP integration is designed to make your payroll and HR processes more efficient. With proper setup and regular maintenance, you'll enjoy seamless data flow between Pivot and ADP! 

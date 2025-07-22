@@ -1,49 +1,26 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Pivot API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2D87FF",
+    "light": "#3BBCFF",
+    "dark": "#2D87FF"
   },
   "favicon": "/favicon.svg",
+  "openapi": [
+    "api/integrations/adp/openapi.json",
+    "api/integrations/nethris/openapi.json",
+    "api/integrations/lightspeed/openapi.json"
+  ],
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Users Guides",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
+            "group": "Main functionalities",
+            "pages": ["users/integrations/index"]
           }
         ]
       },
@@ -51,46 +28,45 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Payroll",
+            "icon": "pen-to-square",
             "pages": [
-              "api-reference/introduction"
+              {
+                "group": "ADP",
+                "openapi": {
+                  "source": "/api/integrations/payroll/adp-openapi.json",
+                  "directory": "api/integrations/payroll/adp"
+                }
+              },
+              {
+                "group": "Nethris",
+                "openapi": {
+                  "source": "/api/integrations/payroll/nethris-openapi.json",
+                  "directory": "api/integrations/payroll/nethris"
+                }
+              }
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "POS",
+            "icon": "pen-to-square",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              {
+                "group": "Lightspeed",
+                "openapi": {
+                  "source": "/api/integrations/pos/lightspeed-openapi.json",
+                  "directory": "api/integrations/pos/lightspeed"
+                }
+              }
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/_assets/logo/logo_pivot.png",
+    "dark": "/_assets/logo/logo_pivot.png"
   },
   "navbar": {
     "links": [
@@ -101,8 +77,8 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Pivot",
+      "href": "https://pivot-not-production-project.web.app/"
     }
   },
   "footer": {

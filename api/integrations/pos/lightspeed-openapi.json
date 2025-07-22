@@ -1,0 +1,642 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Lightspeed Integration API",
+      "description": "API for integrating Pivot with Lightspeed POS (Point of Sale) systems. This API provides endpoints for employee search, company management, and automated sales data synchronization.",
+      "version": "1.0.0",
+      "contact": {
+        "name": "Pivot Support",
+        "email": "support@pivot.com"
+      },
+      "license": {
+        "name": "Proprietary",
+        "url": "https://pivot.com/terms"
+      }
+    },
+    "servers": [
+        {
+            "url": "https://us-central1-pivot-app.cloudfunctions.net",
+            "description": "Production Firebase Functions server"
+          },
+          {
+            "url": "https://us-central1-pivot-not-production-project.cloudfunctions.net/",
+            "description": "Development Firebase Functions server"
+          },
+          {
+            "url": "http://localhost:5001/pivot-not-production-project/us-central1/",
+            "description": "Localhost"
+          }
+    ],
+    "tags": [
+      {
+        "name": "Employee Management",
+        "description": "Employee search and data management"
+      },
+      {
+        "name": "Company Management",
+        "description": "Company and location management"
+      },
+      {
+        "name": "Sales Data",
+        "description": "Sales data synchronization and retrieval"
+      },
+      {
+        "name": "Authentication",
+        "description": "OAuth authentication and token management"
+      }
+    ],
+    "paths": {
+      "/getLightspeedSearchedEmployees": {
+        "post": {
+          "tags": [
+            "Employee Management"
+          ],
+          "summary": "Search for employees in Lightspeed",
+          "description": "Searches for employees in Lightspeed POS system by name, username, or other identifiers. Returns matching employees that can be linked to Pivot employee records.",
+          "operationId": "getLightspeedSearchedEmployees",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "companyId",
+                    "searchedValue"
+                  ],
+                  "properties": {
+                    "companyId": {
+                      "type": "string",
+                      "description": "Company ID in Pivot",
+                      "example": "company123"
+                    },
+                    "searchedValue": {
+                      "type": "string",
+                      "description": "Employee name, username, or other search term",
+                      "example": "John Doe"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Employee search results",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number",
+                          "description": "Lightspeed staff ID",
+                          "example": 12345
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Employee full name",
+                          "example": "John Doe"
+                        },
+                        "publicName": {
+                          "type": "string",
+                          "description": "Employee username",
+                          "example": "johndoe"
+                        },
+                        "role": {
+                          "type": "string",
+                          "description": "Employee role/group name",
+                          "example": "Manager"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing required parameters",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/getLightspeedCompanies": {
+        "post": {
+          "tags": [
+            "Company Management"
+          ],
+          "summary": "Get companies from Lightspeed",
+          "description": "Retrieves company and location information from Lightspeed using OAuth authorization code. Used during initial integration setup.",
+          "operationId": "getLightspeedCompanies",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "companyId"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "OAuth authorization code from Lightspeed",
+                      "example": "auth_code_123456"
+                    },
+                    "companyId": {
+                      "type": "string",
+                      "description": "Company ID in Pivot",
+                      "example": "company123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Companies retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "headOfficeName": {
+                          "type": "string",
+                          "description": "Business name",
+                          "example": "Acme Restaurant Group"
+                        },
+                        "restaurantName": {
+                          "type": "string",
+                          "description": "Location/restaurant name",
+                          "example": "Downtown Location"
+                        },
+                        "locationID": {
+                          "type": "number",
+                          "description": "Lightspeed location ID",
+                          "example": 67890
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing required parameters",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - invalid OAuth code",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error or Lightspeed API error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Error code",
+              "example": "invalid-argument"
+            },
+            "message": {
+              "type": "string",
+              "description": "Error message",
+              "example": "Company ID and searched value are required"
+            },
+            "details": {
+              "type": "object",
+              "description": "Additional error details",
+              "additionalProperties": true
+            }
+          }
+        },
+        "LightspeedEmployee": {
+          "type": "object",
+          "properties": {
+            "staffId": {
+              "type": "number",
+              "description": "Lightspeed staff ID",
+              "example": 12345
+            },
+            "username": {
+              "type": "string",
+              "description": "Employee username",
+              "example": "johndoe"
+            },
+            "userTypes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "User types assigned to employee",
+              "example": ["staff", "manager"]
+            },
+            "firstName": {
+              "type": "string",
+              "description": "Employee first name",
+              "example": "John"
+            },
+            "lastName": {
+              "type": "string",
+              "description": "Employee last name",
+              "example": "Doe"
+            },
+            "active": {
+              "type": "boolean",
+              "description": "Whether employee is active",
+              "example": true
+            },
+            "createdOn": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Employee creation date",
+              "example": "2024-01-15T10:30:00Z"
+            },
+            "modifiedOn": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Employee last modification date",
+              "example": "2024-01-20T14:45:00Z"
+            },
+            "businessId": {
+              "type": "number",
+              "description": "Lightspeed business ID",
+              "example": 1001
+            },
+            "businessLocationId": {
+              "type": "number",
+              "description": "Lightspeed location ID",
+              "example": 67890
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "Group ID",
+                    "example": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Group name",
+                    "example": "Manager"
+                  }
+                }
+              },
+              "description": "Employee groups"
+            },
+            "reportAccess": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Report access permissions",
+              "example": ["sales", "inventory"]
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "Role ID",
+                    "example": 2
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Role name",
+                    "example": "Cashier"
+                  }
+                }
+              },
+              "description": "Employee roles"
+            }
+          }
+        },
+        "LightspeedSettings": {
+          "type": "object",
+          "properties": {
+            "companyId": {
+              "type": "string",
+              "description": "Company ID in Pivot",
+              "example": "company123"
+            },
+            "access_token": {
+              "type": "string",
+              "description": "Lightspeed access token",
+              "example": "access_token_123456"
+            },
+            "refresh_token": {
+              "type": "string",
+              "description": "Lightspeed refresh token",
+              "example": "refresh_token_789012"
+            },
+            "expires_in": {
+              "type": "number",
+              "description": "Token expiration time in seconds",
+              "example": 3600
+            },
+            "created_at": {
+              "type": "number",
+              "description": "Token creation timestamp",
+              "example": 1642234567
+            },
+            "locationID": {
+              "type": "number",
+              "description": "Lightspeed location ID",
+              "example": 67890
+            },
+            "requiresReauth": {
+              "type": "boolean",
+              "description": "Whether reauthentication is required",
+              "example": false
+            }
+          }
+        },
+        "LightspeedCompany": {
+          "type": "object",
+          "properties": {
+            "headOfficeName": {
+              "type": "string",
+              "description": "Business name",
+              "example": "Acme Restaurant Group"
+            },
+            "restaurantName": {
+              "type": "string",
+              "description": "Location/restaurant name",
+              "example": "Downtown Location"
+            },
+            "locationID": {
+              "type": "number",
+              "description": "Lightspeed location ID",
+              "example": 67890
+            }
+          }
+        },
+        "BusinessLocation": {
+          "type": "object",
+          "properties": {
+            "blName": {
+              "type": "string",
+              "description": "Location name",
+              "example": "Downtown Location"
+            },
+            "blId": {
+              "type": "number",
+              "description": "Location ID",
+              "example": 67890
+            },
+            "country": {
+              "type": "string",
+              "description": "Country code",
+              "example": "CA"
+            },
+            "timezone": {
+              "type": "string",
+              "description": "Timezone",
+              "example": "America/Toronto"
+            }
+          }
+        },
+        "Business": {
+          "type": "object",
+          "properties": {
+            "businessName": {
+              "type": "string",
+              "description": "Business name",
+              "example": "Acme Restaurant Group"
+            },
+            "businessId": {
+              "type": "number",
+              "description": "Business ID",
+              "example": 1001
+            },
+            "currencyCode": {
+              "type": "string",
+              "description": "Currency code",
+              "example": "CAD"
+            },
+            "businessLocations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BusinessLocation"
+              },
+              "description": "Business locations"
+            }
+          }
+        },
+        "GetBusinessesResponse": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "_embedded": {
+                  "type": "object",
+                  "properties": {
+                    "businessList": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Business"
+                      }
+                    }
+                  }
+                },
+                "_links": {
+                  "type": "object",
+                  "properties": {
+                    "self": {
+                      "type": "object",
+                      "properties": {
+                        "href": {
+                          "type": "string",
+                          "example": "https://api.lightspeedapp.com/f/data/businesses"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "GetApiStaffResponse": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "staff": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LightspeedEmployee"
+                  }
+                }
+              }
+            },
+            "links": {
+              "type": "object",
+              "properties": {
+                "first": {
+                  "type": "object",
+                  "properties": {
+                    "href": {
+                      "type": "string",
+                      "example": "https://api.lightspeedapp.com/f/data/staff?page=1"
+                    }
+                  }
+                },
+                "self": {
+                  "type": "object",
+                  "properties": {
+                    "href": {
+                      "type": "string",
+                      "example": "https://api.lightspeedapp.com/f/data/staff?page=1"
+                    }
+                  }
+                },
+                "next": {
+                  "type": "object",
+                  "properties": {
+                    "href": {
+                      "type": "string",
+                      "example": "https://api.lightspeedapp.com/f/data/staff?page=2"
+                    }
+                  }
+                },
+                "last": {
+                  "type": "object",
+                  "properties": {
+                    "href": {
+                      "type": "string",
+                      "example": "https://api.lightspeedapp.com/f/data/staff?page=10"
+                    }
+                  }
+                }
+              }
+            },
+            "page": {
+              "type": "object",
+              "properties": {
+                "page": {
+                  "type": "number",
+                  "description": "Current page number",
+                  "example": 1
+                },
+                "size": {
+                  "type": "number",
+                  "description": "Page size",
+                  "example": 50
+                },
+                "totalElements": {
+                  "type": "number",
+                  "description": "Total number of elements",
+                  "example": 150
+                },
+                "totalPages": {
+                  "type": "number",
+                  "description": "Total number of pages",
+                  "example": 3
+                }
+              }
+            }
+          }
+        },
+        "EmployeeSearchResult": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number",
+              "description": "Lightspeed staff ID",
+              "example": 12345
+            },
+            "name": {
+              "type": "string",
+              "description": "Employee full name",
+              "example": "John Doe"
+            },
+            "publicName": {
+              "type": "string",
+              "description": "Employee username",
+              "example": "johndoe"
+            },
+            "role": {
+              "type": "string",
+              "description": "Employee role/group name",
+              "example": "Manager"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "description": "Firebase custom token for authentication"
+        }
+      }
+    },
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "externalDocs": {
+      "description": "Lightspeed Integration Documentation",
+      "url": "https://pivot.com/docs/lightspeed-integration"
+    }
+  } 

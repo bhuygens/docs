@@ -1,0 +1,919 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ADP Integration API",
+    "description": "API for integrating Pivot with ADP (Automatic Data Processing) payroll and HR systems.\nThis API provides endpoints for employee search, authentication, payroll export, and marketplace integration.\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Pivot Support",
+      "email": "support@pivot.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://pivot.com/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-pivot-app.cloudfunctions.net",
+      "description": "Production Firebase Functions server"
+    },
+    {
+      "url": "https://us-central1-pivot-not-production-project.cloudfunctions.net/",
+      "description": "Development Firebase Functions server"
+    },
+    {
+      "url": "http://localhost:5001/pivot-not-production-project/us-central1/",
+      "description": "Localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "ADP OAuth authentication endpoints"
+    },
+    {
+      "name": "Employee Management",
+      "description": "Employee search and data management"
+    },
+    {
+      "name": "Payroll",
+      "description": "Payroll data export and management"
+    },
+    {
+      "name": "Marketplace",
+      "description": "ADP Marketplace integration endpoints"
+    },
+    {
+      "name": "Integration",
+      "description": "Integration setup and verification"
+    }
+  ],
+  "paths": {
+    "/authenticateADPLogin": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Authenticate user with ADP OAuth",
+        "description": "Authenticates a user using ADP OAuth flow. Exchanges authorization code for access token,\nretrieves user information, and creates or updates user account in Pivot.\n",
+        "operationId": "authenticateADPLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Authorization code from ADP OAuth flow",
+                    "example": "abc123def456ghi789"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "customToken": {
+                      "type": "string",
+                      "description": "Firebase custom token for authentication",
+                      "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@company.com"
+                    },
+                    "displayName": {
+                      "type": "string",
+                      "example": "John Doe"
+                    },
+                    "uid": {
+                      "type": "string",
+                      "description": "Firebase user ID",
+                      "example": "user123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing authorization code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission denied - user not associated with company or ADP integration inactive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getAdpSearchedEmployees": {
+      "post": {
+        "tags": [
+          "Employee Management"
+        ],
+        "summary": "Search for employees in ADP",
+        "description": "Searches for employees in ADP by name. Returns matching employees that can be linked\nto Pivot employee records. Requires at least 3 characters for search.\n",
+        "operationId": "getAdpSearchedEmployees",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companyId",
+                  "searchedValue"
+                ],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  },
+                  "searchedValue": {
+                    "type": "string",
+                    "description": "Employee name to search for (minimum 3 characters)",
+                    "minLength": 3,
+                    "example": "John Doe"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employee search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "ADP employee ID",
+                        "example": "adp_emp_123"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Employee full name",
+                        "example": "John Doe"
+                      },
+                      "publicName": {
+                        "type": "string",
+                        "description": "Public display name",
+                        "example": "John Doe"
+                      },
+                      "payrollFileNumber": {
+                        "type": "string",
+                        "description": "ADP payroll file number",
+                        "example": "PFN123456"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ADP company settings not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getAdpPayrollFileNumbersForEmployees": {
+      "post": {
+        "tags": [
+          "Employee Management"
+        ],
+        "summary": "Get payroll file numbers for specific employees",
+        "description": "Retrieves payroll file numbers from ADP for a list of employee IDs.\nUsed to get ADP-specific identifiers for payroll processing.\n",
+        "operationId": "getAdpPayrollFileNumbersForEmployees",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companyId",
+                  "employeesToFindIds"
+                ],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  },
+                  "employeesToFindIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Array of employee IDs to find payroll file numbers for",
+                    "example": [
+                      "emp1",
+                      "emp2",
+                      "emp3"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payroll file numbers for employees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Employee ID",
+                        "example": "emp1"
+                      },
+                      "payrollFileNumber": {
+                        "type": "string",
+                        "description": "ADP payroll file number",
+                        "example": "PFN123456"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ADP company settings not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sendPayrollToAdp": {
+      "post": {
+        "tags": [
+          "Payroll"
+        ],
+        "summary": "Send payroll data to ADP",
+        "description": "Exports payroll data from Pivot to ADP for processing.\nFormats and sends payroll information to ADP's payroll system.\n",
+        "operationId": "sendPayrollToAdp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companyId",
+                  "payroll"
+                ],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  },
+                  "payroll": {
+                    "type": "object",
+                    "description": "Payroll data to export to ADP",
+                    "additionalProperties": true,
+                    "example": {
+                      "payPeriod": "2024-01-01 to 2024-01-15",
+                      "employees": [
+                        {
+                          "employeeId": "emp1",
+                          "hoursWorked": 80,
+                          "grossPay": 2000,
+                          "deductions": 300,
+                          "netPay": 1700
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payroll sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Payroll sent to ADP"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ADP company settings not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error or ADP API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verifyADP": {
+      "post": {
+        "tags": [
+          "Integration"
+        ],
+        "summary": "Verify ADP credentials and setup integration",
+        "description": "Verifies ADP credentials and sets up initial integration.\nUsed during the ADP integration setup process.\n",
+        "operationId": "verifyADP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "companyId"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Authorization code from ADP OAuth flow",
+                    "example": "abc123def456ghi789"
+                  },
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ADP credentials verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ADP credentials verified successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adpSubscriptionCreate": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "Handle ADP Marketplace subscription creation",
+        "description": "Webhook endpoint for ADP Marketplace to notify when a subscription is created.\nSets up company integration with ADP and stores necessary credentials.\n",
+        "operationId": "adpSubscriptionCreate",
+        "parameters": [
+          {
+            "name": "eventUrl",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to fetch subscription data from ADP Marketplace",
+            "example": "https://marketplace.adp.com/events/subscription/123"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Webhook payload from ADP Marketplace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "accountIdentifier": {
+                      "type": "string",
+                      "description": "ADP organization OID",
+                      "example": "org123456"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing event URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid marketplace credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adpSubscriptionCancel": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "Handle ADP Marketplace subscription cancellation",
+        "description": "Webhook endpoint for ADP Marketplace to notify when a subscription is cancelled.\nRemoves all ADP integration data for the company.\n",
+        "operationId": "adpSubscriptionCancel",
+        "parameters": [
+          {
+            "name": "eventUrl",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to fetch cancellation data from ADP Marketplace",
+            "example": "https://marketplace.adp.com/events/cancellation/123"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Webhook payload from ADP Marketplace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Subscription cancelled"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing event URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid marketplace credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "invalid-argument"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Company ID and searched value are required"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ADPTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "ADP access token"
+          },
+          "token_type": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Token expiration time in seconds",
+            "example": 3600
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "ADP refresh token"
+          },
+          "scope": {
+            "type": "string",
+            "example": "openid profile email"
+          },
+          "id_token": {
+            "type": "string",
+            "description": "ADP ID token"
+          },
+          "id_token_type": {
+            "type": "string",
+            "example": "JWT"
+          }
+        }
+      },
+      "ADPUserInfoResponse": {
+        "type": "object",
+        "properties": {
+          "sub": {
+            "type": "string",
+            "description": "ADP user ID",
+            "example": "adp_user_123"
+          },
+          "name": {
+            "type": "string",
+            "description": "User's full name",
+            "example": "John Doe"
+          },
+          "given_name": {
+            "type": "string",
+            "description": "User's first name",
+            "example": "John"
+          },
+          "family_name": {
+            "type": "string",
+            "description": "User's last name",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address",
+            "example": "john.doe@company.com"
+          },
+          "organizationOID": {
+            "type": "string",
+            "description": "ADP organization OID",
+            "example": "org123456"
+          },
+          "associateOID": {
+            "type": "string",
+            "description": "ADP associate OID",
+            "example": "assoc123456"
+          }
+        }
+      },
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Employee ID",
+            "example": "emp123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Employee full name",
+            "example": "John Doe"
+          },
+          "publicName": {
+            "type": "string",
+            "description": "Public display name",
+            "example": "John Doe"
+          },
+          "payrollFileNumber": {
+            "type": "string",
+            "description": "ADP payroll file number",
+            "example": "PFN123456"
+          }
+        }
+      },
+      "PayrollData": {
+        "type": "object",
+        "properties": {
+          "payPeriod": {
+            "type": "string",
+            "description": "Pay period date range",
+            "example": "2024-01-01 to 2024-01-15"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "employeeId": {
+                  "type": "string",
+                  "description": "Employee ID"
+                },
+                "hoursWorked": {
+                  "type": "number",
+                  "description": "Hours worked in pay period"
+                },
+                "grossPay": {
+                  "type": "number",
+                  "description": "Gross pay amount"
+                },
+                "deductions": {
+                  "type": "number",
+                  "description": "Total deductions"
+                },
+                "netPay": {
+                  "type": "number",
+                  "description": "Net pay amount"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Firebase custom token for authentication"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "externalDocs": {
+    "description": "ADP Integration Documentation",
+    "url": "https://pivot.com/docs/adp-integration"
+  }
+}
