@@ -29,15 +29,13 @@
               {
                 "group": "ADP",
                 "openapi": {
-                  "source": "/api/integrations/payroll/adp-openapi.json",
-                  "directory": "api/integrations/payroll/adp"
+                  "source": "/api/integrations/payroll/adp-openapi.json"
                 }
               },
               {
                 "group": "Nethris",
                 "openapi": {
-                  "source": "/api/integrations/payroll/nethris-openapi.json",
-                  "directory": "api/integrations/payroll/nethris"
+                  "source": "/api/integrations/payroll/nethris-openapi.json"
                 }
               }
             ]
@@ -49,8 +47,7 @@
               {
                 "group": "Lightspeed",
                 "openapi": {
-                  "source": "/api/integrations/pos/lightspeed-openapi.json",
-                  "directory": "api/integrations/pos/lightspeed"
+                  "source": "/api/integrations/pos/lightspeed-openapi.json"
                 }
               }
             ]
