@@ -8,11 +8,6 @@
     "dark": "#2D87FF"
   },
   "favicon": "/favicon.svg",
-  "openapi": [
-    "api/integrations/adp/openapi.json",
-    "api/integrations/nethris/openapi.json",
-    "api/integrations/lightspeed/openapi.json"
-  ],
   "navigation": {
     "tabs": [
       {
