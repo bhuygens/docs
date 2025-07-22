@@ -1,0 +1,519 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "MYR Integration API",
+      "description": "API for integrating Pivot with MYR POS (Point of Sale) systems. This API provides endpoints for receiving and processing sales data from MYR POS systems.",
+      "version": "1.0.0",
+      "contact": {
+        "name": "Pivot Support",
+        "email": "support@pivot.com"
+      },
+      "license": {
+        "name": "Proprietary",
+        "url": "https://pivot.com/terms"
+      }
+    },
+    "servers": [
+      {
+        "url": "https://us-central1-pivot-app.cloudfunctions.net",
+        "description": "Production Firebase Functions server"
+      },
+      {
+        "url": "https://us-central1-pivot-dev.cloudfunctions.net",
+        "description": "Development Firebase Functions server"
+      }
+    ],
+    "tags": [
+      {
+        "name": "Sales Data",
+        "description": "Sales data processing and storage"
+      },
+      {
+        "name": "POS Integration",
+        "description": "Point of Sale system integration"
+      }
+    ],
+    "paths": {
+      "/storeMyrSales": {
+        "post": {
+          "tags": ["Sales Data"],
+          "summary": "Store MYR sales data",
+          "description": "Receives and processes sales data from MYR POS system. Validates the data, computes sales metrics, and stores the results in the database.",
+          "operationId": "storeMyrSales",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyrRawSales"
+                },
+                "example": {
+                  "businessDay": "2024-01-15",
+                  "locationId": 12345,
+                  "orders": {
+                    "order_001": {
+                      "number": "001",
+                      "date": "2024-01-15T10:30:00Z",
+                      "total": 25.50,
+                      "subtotal": 22.50,
+                      "taxes": [3.00],
+                      "discount": "0",
+                      "payments": [
+                        {
+                          "tenderType": "CASH",
+                          "description": "Cash Payment",
+                          "amount": 25.50,
+                          "tip": "3.00",
+                          "time": "2024-01-15T10:30:00Z"
+                        }
+                      ],
+                      "customers": 2,
+                      "source": "POS",
+                      "master_number": 1,
+                      "items": [
+                        {
+                          "id": "item_001",
+                          "category_id": "cat_001",
+                          "quantity": "1",
+                          "revenue": 15.00,
+                          "price": 15.00,
+                          "category": "Main Course",
+                          "name": "Burger",
+                          "options": [
+                            {
+                              "id": "opt_001",
+                              "option_group_id": "group_001",
+                              "quantity": 1,
+                              "revenue": 2.50,
+                              "price": 2.50,
+                              "group_name": "Sides",
+                              "name": "Fries"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Sales data stored successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request - validation error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Missing required fields: orders or locationId or businessDay"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - invalid API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Invalid API key"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "415": {
+              "description": "Unsupported media type",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Content type must be application/json"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Internal server error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "MyrRawSales": {
+          "type": "object",
+          "required": ["businessDay", "locationId", "orders"],
+          "properties": {
+            "businessDay": {
+              "type": "string",
+              "format": "date",
+              "description": "Business day in YYYY-MM-DD format",
+              "example": "2024-01-15"
+            },
+            "locationId": {
+              "type": "number",
+              "description": "MYR location ID",
+              "example": 12345
+            },
+            "orders": {
+              "$ref": "#/components/schemas/Orders"
+            }
+          }
+        },
+        "Orders": {
+          "type": "object",
+          "description": "Collection of orders for the business day",
+          "additionalProperties": {
+            "$ref": "#/components/schemas/Order"
+          }
+        },
+        "Order": {
+          "type": "object",
+          "required": ["number", "date", "total", "subtotal", "taxes", "discount", "payments", "customers", "source", "master_number", "items"],
+          "properties": {
+            "number": {
+              "type": "string",
+              "description": "Order number",
+              "example": "001"
+            },
+            "date": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Order date and time",
+              "example": "2024-01-15T10:30:00Z"
+            },
+            "total": {
+              "type": "number",
+              "description": "Total order amount including taxes",
+              "example": 25.50
+            },
+            "subtotal": {
+              "type": "number",
+              "description": "Order subtotal before taxes",
+              "example": 22.50
+            },
+            "taxes": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "description": "Array of tax amounts",
+              "example": [3.00]
+            },
+            "discount": {
+              "type": "string",
+              "description": "Discount amount",
+              "example": "0"
+            },
+            "payments": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Payment"
+              },
+              "description": "Payment methods used"
+            },
+            "customers": {
+              "type": "number",
+              "description": "Number of customers",
+              "example": 2
+            },
+            "source": {
+              "type": "string",
+              "description": "Order source",
+              "example": "POS"
+            },
+            "master_number": {
+              "type": "number",
+              "description": "Master order number",
+              "example": 1
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Item"
+              },
+              "description": "Order items"
+            }
+          }
+        },
+        "Payment": {
+          "type": "object",
+          "required": ["tenderType", "description", "amount", "tip", "time"],
+          "properties": {
+            "tenderType": {
+              "type": "string",
+              "description": "Payment method type",
+              "example": "CASH"
+            },
+            "description": {
+              "type": "string",
+              "description": "Payment description",
+              "example": "Cash Payment"
+            },
+            "amount": {
+              "type": "number",
+              "description": "Payment amount",
+              "example": 25.50
+            },
+            "tip": {
+              "type": "string",
+              "description": "Tip amount",
+              "example": "3.00"
+            },
+            "time": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Payment time",
+              "example": "2024-01-15T10:30:00Z"
+            }
+          }
+        },
+        "Item": {
+          "type": "object",
+          "required": ["id", "category_id", "quantity", "revenue", "price", "category", "name", "options"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Item ID",
+              "example": "item_001"
+            },
+            "category_id": {
+              "type": "string",
+              "description": "Category ID",
+              "example": "cat_001"
+            },
+            "quantity": {
+              "type": "string",
+              "description": "Item quantity",
+              "example": "1"
+            },
+            "revenue": {
+              "type": "number",
+              "description": "Item revenue",
+              "example": 15.00
+            },
+            "price": {
+              "type": "number",
+              "description": "Item price",
+              "example": 15.00
+            },
+            "category": {
+              "type": "string",
+              "description": "Item category",
+              "example": "Main Course"
+            },
+            "name": {
+              "type": "string",
+              "description": "Item name",
+              "example": "Burger"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Option"
+              },
+              "description": "Item options/modifiers"
+            }
+          }
+        },
+        "Option": {
+          "type": "object",
+          "required": ["id", "option_group_id", "quantity", "revenue", "price", "group_name", "name"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Option ID",
+              "example": "opt_001"
+            },
+            "option_group_id": {
+              "type": "string",
+              "description": "Option group ID",
+              "example": "group_001"
+            },
+            "quantity": {
+              "type": "number",
+              "description": "Option quantity",
+              "example": 1
+            },
+            "revenue": {
+              "type": "number",
+              "description": "Option revenue",
+              "example": 2.50
+            },
+            "price": {
+              "type": "number",
+              "description": "Option price",
+              "example": 2.50
+            },
+            "group_name": {
+              "type": "string",
+              "description": "Option group name",
+              "example": "Sides"
+            },
+            "name": {
+              "type": "string",
+              "description": "Option name",
+              "example": "Fries"
+            }
+          }
+        },
+        "MyrCompanySettings": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "MYR location ID",
+              "example": "12345"
+            }
+          }
+        },
+        "PosInvoice": {
+          "type": "object",
+          "properties": {
+            "carrierEmployeeId": {
+              "type": "string",
+              "description": "Employee ID who carried the order",
+              "example": ""
+            },
+            "closeLocalTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Order close time",
+              "example": "2024-01-15T10:30:00Z"
+            },
+            "openLocalTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Order open time",
+              "example": "2024-01-15T10:30:00Z"
+            },
+            "paidByCash": {
+              "type": "number",
+              "description": "Amount paid in cash",
+              "example": 25.50
+            },
+            "sellingEmployeeId": {
+              "type": "string",
+              "description": "Employee ID who sold the order",
+              "example": ""
+            },
+            "tipsTotalAmount": {
+              "type": "number",
+              "description": "Total tips amount",
+              "example": 3.00
+            },
+            "total": {
+              "type": "number",
+              "description": "Total order amount",
+              "example": 22.50
+            }
+          }
+        },
+        "ComputedSales": {
+          "type": "object",
+          "properties": {
+            "morningSales": {
+              "type": "number",
+              "description": "Sales before 5 PM",
+              "example": 1500.75
+            },
+            "endOfDaySales": {
+              "type": "number",
+              "description": "Total sales for the day",
+              "example": 2500.50
+            },
+            "invoices": {
+              "type": "object",
+              "description": "Processed invoice data",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/PosInvoice"
+              }
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "x-api-key",
+          "description": "API key for MYR integration authentication"
+        }
+      }
+    },
+    "security": [
+      {
+        "ApiKeyAuth": []
+      }
+    ],
+    "externalDocs": {
+      "description": "MYR Integration Documentation",
+      "url": "https://pivot.com/docs/myr-integration"
+    }
+  } 

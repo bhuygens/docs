@@ -49,6 +49,12 @@
                 "openapi": {
                   "source": "/api/integrations/pos/lightspeed-openapi.json"
                 }
+              },
+              {
+                "group": "MYR",
+                "openapi": {
+                  "source": "/api/integrations/pos/myr-openapi.json"
+                }
               }
             ]
           }
