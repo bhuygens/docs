@@ -1,0 +1,187 @@
+# Skytab Integration Guide
+
+Welcome to the Skytab integration guide! This guide will help you assist customers with connecting their Skytab POS system to Pivot for employee and sales data synchronization.
+
+## What is Skytab?
+
+Skytab is a Point of Sale (POS) system by Shift4 Payments. When integrated with Pivot, it allows businesses to:
+
+- **Sync employee data** between their POS and Pivot
+- **Track sales automatically** with hourly updates
+- **View historical sales data** for reporting and analysis
+- **Link POS employees** to Pivot profiles for better workforce management
+
+## Setting Up the Integration
+
+### How Customers Connect Skytab to Pivot
+
+The integration can only be initiated from the Skytab Marketplace:
+
+<Steps>
+  <Step title="Log into Skytab">
+    The customer needs to access their Skytab account and navigate to the Shift4 Marketplace.
+  </Step>
+  <Step title="Find Pivot">
+    In the marketplace, search for "Pivot" or browse the available integrations to find the Pivot app.
+  </Step>
+  <Step title="Click Install">
+    Click the "Install" button on the Pivot integration. This will redirect them to Pivot automatically.
+    <Warning>The customer has 15 minutes to complete the setup once they click Install.</Warning>
+  </Step>
+  <Step title="Enter Company ID">
+    When redirected to Pivot, they'll be prompted to enter their Pivot Company ID. This connects their Skytab location to the correct Pivot account.
+  </Step>
+  <Step title="Confirmation">
+    Once completed, they'll see a success message. The integration is now active and will begin syncing data automatically.
+  </Step>
+</Steps>
+
+<Tip>If the customer doesn't know their Company ID, they can find it in Pivot under Account Settings → Company Info.</Tip>
+
+## Managing Employees
+
+### Linking Employees to Skytab
+
+Once the integration is set up, customers can link their Pivot employees to their Skytab POS profiles:
+
+<Steps>
+  <Step title="Go to Employee Profile">
+    Navigate to any employee's profile in Pivot.
+  </Step>
+  <Step title="Find Skytab ID Field">
+    Look for the "Skytab ID" field in the employee information section.
+  </Step>
+  <Step title="Search for Employee">
+    Click on the field and type at least 3 letters of the employee's name as it appears in Skytab.
+  </Step>
+  <Step title="Select from Results">
+    A dropdown will appear with matching employees from Skytab. Select the correct employee.
+  </Step>
+  <Step title="Save">
+    The Skytab ID will be saved automatically, linking the two profiles.
+  </Step>
+</Steps>
+
+<Info>The search looks for matches in both first and last names. If an employee isn't found, verify their name is entered correctly in Skytab.</Info>
+
+## Sales Data
+
+### Understanding Sales Synchronization
+
+Pivot automatically collects sales data from Skytab to help with labor cost analysis and reporting:
+
+- **Hourly Updates**: Sales data is collected every hour automatically
+- **Timezone Aware**: Data is synced based on the company's timezone setting
+- **Historical Data**: Past sales data can be imported when needed
+
+### Viewing Sales Data
+
+Customers can view their Skytab sales data in Pivot through:
+
+1. **Dashboard**: Real-time sales appear on the main dashboard
+2. **Labor Cost Analysis**: Sales vs. labor cost comparisons in the Payroll section
+
+<Note>Sales data typically appears within an hour of transactions being completed in Skytab.</Note>
+
+## Disconnecting the Integration
+
+### Option 1: Disconnect from Pivot
+
+Customers can remove the integration directly from Pivot:
+
+<Steps>
+  <Step title="Go to Settings">
+    Navigate to Account Settings → Integrations.
+  </Step>
+  <Step title="Find Skytab">
+    Locate the Skytab card in the POS Systems section.
+  </Step>
+  <Step title="Click Disconnect">
+    Click the "Disconnect" button on the Skytab card.
+  </Step>
+  <Step title="Confirm">
+    Confirm the disconnection when prompted. This removes the integration from both Pivot and Skytab.
+  </Step>
+</Steps>
+
+### Option 2: Uninstall from Skytab Marketplace
+
+Customers can also remove the integration from Skytab:
+
+<Steps>
+  <Step title="Access Skytab Marketplace">
+    Log into Skytab and go to the Shift4 Marketplace.
+  </Step>
+  <Step title="My Apps">
+    Navigate to "My Apps" or "Installed Apps" section.
+  </Step>
+  <Step title="Find Pivot">
+    Locate Pivot in the list of installed applications.
+  </Step>
+  <Step title="Uninstall">
+    Click "Uninstall" or "Remove". Pivot will be notified automatically and the integration will be disconnected.
+  </Step>
+</Steps>
+
+<Warning>Disconnecting the integration will stop all data synchronization. Historical data already in Pivot will remain, but no new data will be imported.</Warning>
+
+## Troubleshooting Common Issues
+
+### "Link Token Expired" Error
+
+If a customer sees this error during setup:
+- They need to return to the Skytab Marketplace
+- Click "Install" again to generate a new link
+- Complete the setup within 15 minutes
+
+### Employees Not Appearing in Search
+
+If employees aren't found when searching:
+- Verify employees exist in the Skytab POS system
+- Check that names are spelled correctly
+- Ensure the integration shows as "Connected" in settings
+- Wait a few minutes for initial sync if just connected
+
+### Sales Data Not Updating
+
+If sales aren't appearing in Pivot:
+- Confirm transactions exist in Skytab for that time period
+- Check the integration status in Account Settings
+- Verify the company timezone is set correctly in both systems
+- Allow up to 1 hour for new sales to appear
+
+### Integration Shows as Disconnected
+
+If the integration appears disconnected:
+- Check if it was removed from the Skytab Marketplace
+- Verify the Skytab account is still active
+- Re-install from the Skytab Marketplace if needed
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Can I connect multiple Skytab locations?">
+    Each Pivot company can connect to one Skytab location. For multiple locations, you'll need separate Pivot companies for each.
+  </Accordion>
+  <Accordion title="How far back can I import sales data?">
+    Pivot can import up to one year of historical sales data from Skytab. This happens automatically during the initial setup.
+  </Accordion>
+  <Accordion title="Do I need to map all employees?">
+    It's recommended to map all active employees for accurate reporting.
+  </Accordion>
+  <Accordion title="What happens to my data if I disconnect?">
+    All historical data remains in Pivot. Only new data synchronization stops. You can reconnect anytime to resume syncing (this will re-trigger the get last year sales function).
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+If customers need additional assistance:
+
+- **For Skytab issues**: Contact Shift4 support directly
+    - Marketplace: marketplace-partnerships@shift4.com
+    - Integration contact: Corey Grzybowski cgrzybowski@shift4.com
+- **For Pivot issues**: Contact the dev team
+- **For integration setup**: Follow this guide or contact Pivot support
+- Api Documentation: https://conecto-api.shift4payments.com/docs/marketplace/locations.html
+<Note>Remember that the integration must be initiated from the Skytab Marketplace - it cannot be started from within Pivot.</Note>

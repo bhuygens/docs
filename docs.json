@@ -55,6 +55,12 @@
                 "openapi": {
                   "source": "/api/integrations/pos/myr-openapi.json"
                 }
+              },
+              {
+                "group": "Skytab",
+                "openapi": {
+                  "source": "/api/integrations/pos/skytab-openapi.json"
+                }
               }
             ]
           }

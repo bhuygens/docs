@@ -1,0 +1,817 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Skytab Integration API",
+      "description": "API for integrating Pivot with Skytab POS (Point of Sale) systems. This API provides endpoints for employee search, integration setup, and automated sales data synchronization.",
+      "version": "1.0.0",
+      "contact": {
+        "name": "Pivot Support",
+        "email": "support@pivot.com"
+      },
+      "license": {
+        "name": "Proprietary",
+        "url": "https://pivot.com/terms"
+      }
+    },
+    "servers": [
+      {
+        "url": "https://us-central1-pivot-app.cloudfunctions.net",
+        "description": "Production Firebase Functions server"
+      },
+      {
+        "url": "https://us-central1-pivot-dev.cloudfunctions.net",
+        "description": "Development Firebase Functions server"
+      }
+    ],
+    "tags": [
+      {
+        "name": "Employee Management",
+        "description": "Employee search and data management"
+      },
+      {
+        "name": "Integration Setup",
+        "description": "Integration setup and management"
+      },
+      {
+        "name": "Subscription Management",
+        "description": "Subscription cancellation and webhook handling"
+      },
+      {
+        "name": "Sales Data",
+        "description": "Sales data synchronization and retrieval"
+      }
+    ],
+    "paths": {
+      "/getSkytabSearchedEmployees": {
+        "post": {
+          "tags": [
+            "Employee Management"
+          ],
+          "summary": "Search for employees in Skytab",
+          "description": "Searches for employees in Skytab POS system by name. Returns matching employees that can be linked to Pivot employee records.",
+          "operationId": "getSkytabSearchedEmployees",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "companyId",
+                    "searchedValue"
+                  ],
+                  "properties": {
+                    "companyId": {
+                      "type": "string",
+                      "description": "Company ID in Pivot",
+                      "example": "company123"
+                    },
+                    "searchedValue": {
+                      "type": "string",
+                      "description": "Employee name to search for",
+                      "example": "John Doe"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Employee search results",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Skytab POS reference ID",
+                          "example": "emp_123456"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Employee full name",
+                          "example": "John Doe"
+                        },
+                        "publicName": {
+                          "type": "string",
+                          "description": "Employee display name",
+                          "example": "John Doe"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing required parameters or location ID not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/handleSkytabLinkToken": {
+        "post": {
+          "tags": [
+            "Integration Setup"
+          ],
+          "summary": "Link Skytab integration using link token",
+          "description": "Processes a Skytab link token to set up integration. Validates the token, finalizes installation with Shift4, and stores company settings.",
+          "operationId": "handleSkytabLinkToken",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "linkToken",
+                    "companyId"
+                  ],
+                  "properties": {
+                    "linkToken": {
+                      "type": "string",
+                      "description": "Skytab link token for integration setup",
+                      "example": "link_token_123456"
+                    },
+                    "companyId": {
+                      "type": "string",
+                      "description": "Company ID in Pivot",
+                      "example": "company123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Integration linked successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Skytab integration successfully linked"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing required parameters or invalid link token",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/cancelSkytabSubscription": {
+        "post": {
+          "tags": [
+            "Subscription Management"
+          ],
+          "summary": "Cancel Skytab subscription",
+          "description": "Cancels the Skytab subscription for a company and removes all integration settings.",
+          "operationId": "cancelSkytabSubscription",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "companyId"
+                  ],
+                  "properties": {
+                    "companyId": {
+                      "type": "string",
+                      "description": "Company ID in Pivot",
+                      "example": "company123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Subscription cancelled successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Subscription canceled"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing company ID",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Company settings not found or location not active",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/skytabUnsubscribeListener": {
+        "post": {
+          "tags": [
+            "Subscription Management"
+          ],
+          "summary": "Handle Skytab unsubscribe webhook",
+          "description": "Webhook endpoint for handling Skytab unsubscribe events. Processes location deletion events and removes company integration settings.",
+          "operationId": "skytabUnsubscribeListener",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkytabUnsubscribeEvent"
+                },
+                "example": {
+                  "event": {
+                    "name": "marketplace.Location.deleted",
+                    "component": "marketplace",
+                    "resource": "Location",
+                    "action": "deleted",
+                    "version": "v1",
+                    "subscriptionId": 12345,
+                    "dispatchedAt": "2024-01-15T10:30:00Z"
+                  },
+                  "payload": {
+                    "locationId": 67890
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Unsubscribe event processed successfully",
+              "content": {
+                "text/plain": {
+                  "schema": {
+                    "type": "string",
+                    "example": "Company unsubscribed"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - invalid event data",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Company not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Error code",
+              "example": "invalid-argument"
+            },
+            "message": {
+              "type": "string",
+              "description": "Error message",
+              "example": "Company ID and searched value are required"
+            },
+            "details": {
+              "type": "object",
+              "description": "Additional error details",
+              "additionalProperties": true
+            }
+          }
+        },
+        "Employee": {
+          "type": "object",
+          "properties": {
+            "posRef": {
+              "type": "string",
+              "description": "Skytab POS reference ID",
+              "example": "emp_123456"
+            },
+            "name": {
+              "type": "string",
+              "description": "Employee full name",
+              "example": "John Doe"
+            },
+            "firstName": {
+              "type": "string",
+              "description": "Employee first name",
+              "example": "John"
+            },
+            "lastName": {
+              "type": "string",
+              "description": "Employee last name",
+              "example": "Doe"
+            },
+            "payrollId": {
+              "type": "string",
+              "description": "Payroll ID",
+              "example": "pay_789"
+            },
+            "isActive": {
+              "type": "boolean",
+              "description": "Whether employee is active",
+              "example": true
+            },
+            "jobs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Employee job roles",
+              "example": ["Server", "Bartender"]
+            },
+            "payRates": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PayRate"
+              },
+              "description": "Employee pay rates"
+            },
+            "emails": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "email"
+              },
+              "description": "Employee email addresses",
+              "example": ["john.doe@company.com"]
+            },
+            "phones": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Phone"
+              },
+              "description": "Employee phone numbers"
+            }
+          }
+        },
+        "PayRate": {
+          "type": "object",
+          "properties": {
+            "jobRef": {
+              "type": "string",
+              "description": "Job reference ID",
+              "example": "job_001"
+            },
+            "payRate": {
+              "type": "number",
+              "description": "Pay rate amount",
+              "example": 15.50
+            },
+            "isPaidHourly": {
+              "type": "boolean",
+              "description": "Whether employee is paid hourly",
+              "example": true
+            }
+          }
+        },
+        "Phone": {
+          "type": "object",
+          "properties": {
+            "number": {
+              "type": "string",
+              "description": "Phone number",
+              "example": "+1-555-123-4567"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["WORK", "MOBILE", "OTHER"],
+              "description": "Phone number type",
+              "example": "MOBILE"
+            }
+          }
+        },
+        "SkytabSettings": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Skytab location ID",
+              "example": "loc_123456"
+            },
+            "merchantId": {
+              "type": "string",
+              "description": "Merchant ID",
+              "example": "merchant_789"
+            },
+            "locationName": {
+              "type": "string",
+              "description": "Location name",
+              "example": "Downtown Restaurant"
+            },
+            "timeZone": {
+              "type": "string",
+              "description": "Location timezone",
+              "example": "America/Toronto"
+            },
+            "countryCode": {
+              "type": "string",
+              "description": "Country code",
+              "example": "CA"
+            },
+            "currency": {
+              "type": "string",
+              "description": "Currency code",
+              "example": "CAD"
+            },
+            "language": {
+              "type": "string",
+              "description": "Language code",
+              "example": "en"
+            },
+            "brandRef": {
+              "type": "string",
+              "description": "Brand reference",
+              "example": "brand_001"
+            },
+            "userEmail": {
+              "type": "string",
+              "format": "email",
+              "description": "User email",
+              "example": "user@company.com"
+            },
+            "createdAt": {
+              "type": "number",
+              "description": "Creation timestamp",
+              "example": 1642234567
+            }
+          }
+        },
+        "Shift4LinkTokenMeta": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "User email",
+                  "example": "user@company.com"
+                }
+              }
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number",
+                  "description": "Location ID",
+                  "example": 123456
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Location name",
+                  "example": "Downtown Restaurant"
+                },
+                "timeZone": {
+                  "type": "string",
+                  "description": "Location timezone",
+                  "example": "America/Toronto"
+                },
+                "merchantId": {
+                  "type": "string",
+                  "description": "Merchant ID",
+                  "example": "merchant_789"
+                },
+                "countryCode": {
+                  "type": "string",
+                  "description": "Country code",
+                  "example": "CA"
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Currency code",
+                  "example": "CAD"
+                },
+                "language": {
+                  "type": "string",
+                  "description": "Language code",
+                  "example": "en"
+                },
+                "brandRef": {
+                  "type": "string",
+                  "description": "Brand reference",
+                  "example": "brand_001"
+                }
+              }
+            },
+            "salesRepContact": {
+              "type": "object",
+              "properties": {
+                "firstName": {
+                  "type": "string",
+                  "description": "Sales rep first name",
+                  "example": "Jane"
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "Sales rep last name",
+                  "example": "Smith"
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Sales rep phone",
+                  "example": "+1-555-123-4567"
+                },
+                "phoneExt": {
+                  "type": "string",
+                  "description": "Phone extension",
+                  "example": "123"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Sales rep email",
+                  "example": "jane.smith@skytab.com"
+                }
+              }
+            },
+            "dealerContact": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "description": "Dealer company name",
+                  "example": "Skytab Solutions"
+                },
+                "firstName": {
+                  "type": "string",
+                  "description": "Dealer first name",
+                  "example": "Mike"
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "Dealer last name",
+                  "example": "Johnson"
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Dealer phone",
+                  "example": "+1-555-987-6543"
+                },
+                "phoneExt": {
+                  "type": "string",
+                  "description": "Phone extension",
+                  "example": "456"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Dealer email",
+                  "example": "mike.johnson@skytab.com"
+                }
+              }
+            }
+          }
+        },
+        "Shift4LocationCreationPayload": {
+          "type": "object",
+          "required": ["linkToken"],
+          "properties": {
+            "linkToken": {
+              "type": "string",
+              "description": "Link token for location creation",
+              "example": "link_token_123456"
+            }
+          }
+        },
+        "Shift4LocationCreationResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "description": "Whether location creation was successful",
+              "example": true
+            },
+            "message": {
+              "type": "string",
+              "description": "Response message",
+              "example": "Location created successfully"
+            }
+          }
+        },
+        "SkytabUnsubscribeEvent": {
+          "type": "object",
+          "required": ["event", "payload"],
+          "properties": {
+            "event": {
+              "type": "object",
+              "required": ["name", "component", "resource", "action", "version", "subscriptionId", "dispatchedAt"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "marketplace.Location.deleted",
+                    "marketplace.InstallationRequest.created",
+                    "marketplace.InstallationRequest.cancelled",
+                    "marketplace.InstallationValidation.created"
+                  ],
+                  "description": "Event name",
+                  "example": "marketplace.Location.deleted"
+                },
+                "component": {
+                  "type": "string",
+                  "description": "Event component",
+                  "example": "marketplace"
+                },
+                "resource": {
+                  "type": "string",
+                  "enum": ["Location", "InstallationRequest", "InstallationValidation"],
+                  "description": "Event resource",
+                  "example": "Location"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": ["deleted", "created", "cancelled"],
+                  "description": "Event action",
+                  "example": "deleted"
+                },
+                "version": {
+                  "type": "string",
+                  "description": "Event version",
+                  "example": "v1"
+                },
+                "subscriptionId": {
+                  "type": "number",
+                  "description": "Subscription ID",
+                  "example": 12345
+                },
+                "dispatchedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Event dispatch time",
+                  "example": "2024-01-15T10:30:00Z"
+                }
+              }
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "locationId": {
+                  "type": "number",
+                  "nullable": true,
+                  "description": "Location ID",
+                  "example": 67890
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "Event GUID",
+                  "example": "guid_123456"
+                },
+                "installationRequest": {
+                  "type": "object",
+                  "description": "Installation request data",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "EmployeeSearchResult": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Skytab POS reference ID",
+              "example": "emp_123456"
+            },
+            "name": {
+              "type": "string",
+              "description": "Employee full name",
+              "example": "John Doe"
+            },
+            "publicName": {
+              "type": "string",
+              "description": "Employee display name",
+              "example": "John Doe"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "description": "Firebase custom token for authentication"
+        }
+      }
+    },
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "externalDocs": {
+      "description": "Skytab Integration Documentation",
+      "url": "https://pivot.com/docs/skytab-integration"
+    }
+  } 
