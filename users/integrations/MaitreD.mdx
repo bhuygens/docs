@@ -1,0 +1,45 @@
+# MaitreD Integration Guide
+
+Welcome to the MaitreD integration guide! This guide will help you assist customers with connecting their MaitreD system to Pivot for employee and sales data synchronization.
+
+## What we do with MaitreD?
+- **Track sales automatically** when the restaurant closes its business day
+
+## Setting up the integration
+The integration can only be initiated from Pivot: 
+
+<Danger>The integration has to be done in the MaitreD computer directly</Danger>
+
+<Steps>
+  <Step title="Go to integration settings">
+    The customer will see the MaitreD integration card. He clicks on it.
+  </Step>
+  <Step title="Download files">
+    A zip archive is downloaded with 3 files: 
+    - **script.ps1**: The code to extract sales
+    - **config**: The key to authenticate the restaurant
+    - **EOD.bat**: The file triggered when the restaurant closes its business day
+  </Step>
+  <Step title="Extract file">
+  - Extract the zip file
+  - Open the PRG folder: `C:\posera\maitred\prg`
+  </Step>
+  <Step title="Copy files">
+  - Copy `script.ps1` and `config` in the PRG folder
+  - Open the `EOD.bat` file in the PRG folder. 
+  - If it's empty, copy paste the EOD.bat file downloaded and extracted before
+  - If it's not empty. Copy the content of the our EOD.bat at the end of the existing code
+  <Tip>Check if there is no `exit` in the EOD.bat file above the code you pasted or our code won't be executed</Tip>
+  - Run the `EOD.bat`, a terminal will appear and run the `script.ps1`
+  - Check on Slack in the channel `logs` a line like: 
+`Successfully processed invoice.xml - RESTAURANT_NAME - number of imported sales NUMBER`
+  </Step>
+</Steps>
+
+## Troubleshooting
+### Unable to run the script
+1. Click on the windows icon (bottom left)
+2. Search and open `Powershell`
+3. Run the command 'Set-ExecutionPolicy unrestricted'
+4. Re-run the script.ps1
+5. You should see the line on Slack

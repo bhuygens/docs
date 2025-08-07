@@ -1,0 +1,43 @@
+Payroll
+ <Card title="Nethris" icon="pen-to-square" href="/users/integrations/nethris">
+    Payroll
+  </Card>
+  <Card
+    title="EmployeurD"
+    icon="pen-to-square"
+    href="/users/integrations/employeurd"
+  >
+    Payroll
+  </Card>
+  <Card
+    title="Powerpay"
+    icon="pen-to-square"
+    href="/users/integrations/powerpay"
+  >
+    Payroll
+  </Card>
+
+
+## Reservation
+
+<Columns cols={2}>
+  <Card title="Libro" icon="pen-to-square" href="/users/integrations/libro">
+    Reservation
+  </Card>
+</Columns>
+
+
+## POS  
+<Card title="Veloce" icon="pen-to-square" href="/users/integrations/veloce">
+    POS
+</Card>
+  <Card
+    title="Lightspeed"
+    icon="pen-to-square"
+    href="/users/integrations/lightspeed"
+  >
+    POS
+  </Card>
+  <Card title="Cluster" icon="pen-to-square" href="/users/integrations/cluster">
+    POS
+  </Card>
