@@ -61,6 +61,12 @@
                 "openapi": {
                   "source": "/api/integrations/pos/skytab-openapi.json"
                 }
+              },
+              {
+                "group": "Square",
+                "openapi": {
+                  "source": "/api/integrations/pos/square-openapi.json"
+                }
               }
             ]
           }

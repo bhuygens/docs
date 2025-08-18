@@ -1,0 +1,563 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Square Integration API",
+    "description": "API for integrating Pivot with Square payment processing systems. This API provides endpoints for OAuth verification, employee search, integration setup, and automated sales data synchronization.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Pivot Support",
+      "email": "support@pivot.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://pivot.com/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-pivot-app.cloudfunctions.net",
+      "description": "Production Firebase Functions server"
+    },
+    {
+      "url": "https://us-central1-pivot-not-production-project.cloudfunctions.net/",
+      "description": "Development Firebase Functions server"
+    },
+    {
+      "url": "http://localhost:5001/pivot-not-production-project/us-central1/",
+      "description": "Localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "OAuth & Authentication",
+      "description": "Square OAuth verification and token management"
+    },
+    {
+      "name": "Employee Management",
+      "description": "Employee search and data management"
+    },
+    {
+      "name": "Integration Setup",
+      "description": "Integration setup and initialization"
+    },
+    {
+      "name": "Sales Data",
+      "description": "Sales data synchronization and retrieval"
+    }
+  ],
+  "paths": {
+    "/verifySquare": {
+      "post": {
+        "tags": ["OAuth & Authentication"],
+        "summary": "Verify Square OAuth and complete integration setup",
+        "description": "Exchanges authorization code for access token, validates CSRF token, and sets up initial Square integration with location selection.",
+        "operationId": "verifySquare",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["csrfCode", "oAuthCode", "companyId"],
+                "properties": {
+                  "csrfCode": {
+                    "type": "string",
+                    "description": "CSRF token for security validation",
+                    "example": "abc123def456"
+                  },
+                  "oAuthCode": {
+                    "type": "string",
+                    "description": "OAuth authorization code from Square",
+                    "example": "oauth_code_from_square"
+                  },
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Square verification successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the verification was successful",
+                      "example": true
+                    },
+                    "companies": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SquareLocation"
+                      },
+                      "description": "List of available Square locations"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters or invalid CSRF token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getSquareSearchedEmployees": {
+      "post": {
+        "tags": ["Employee Management"],
+        "summary": "Search for employees in Square",
+        "description": "Searches for employees in Square POS system by name. Returns matching employees that can be linked to Pivot employee records.",
+        "operationId": "getSquareSearchedEmployees",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["companyId", "searchedValue"],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  },
+                  "searchedValue": {
+                    "type": "string",
+                    "description": "Employee name to search for",
+                    "example": "John Doe"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employee search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmployeeSearchResult"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters or location ID not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/firstSquareIntegration": {
+      "post": {
+        "tags": ["Integration Setup"],
+        "summary": "Initialize Square integration with historical data",
+        "description": "Triggered when a Square location ID is set. Fetches and stores historical sales data for the past 13 months.",
+        "operationId": "firstSquareIntegration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["companyId", "locationID"],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "description": "Company ID in Pivot",
+                    "example": "company123"
+                  },
+                  "locationID": {
+                    "type": "string",
+                    "description": "Square location ID",
+                    "example": "location_123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Integration initialized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Square integration initialized successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cronHourlySquareSales": {
+      "post": {
+        "tags": ["Sales Data"],
+        "summary": "Process hourly Square sales data",
+        "description": "Scheduled endpoint that processes hourly sales data from Square, matches sales with employees, and updates sales records.",
+        "operationId": "cronHourlySquareSales",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "forceRun": {
+                    "type": "boolean",
+                    "description": "Force run the cron job outside of scheduled time",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hourly sales processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "processedCompanies": {
+                      "type": "number",
+                      "description": "Number of companies processed",
+                      "example": 5
+                    },
+                    "totalSales": {
+                      "type": "number",
+                      "description": "Total sales processed",
+                      "example": 150
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "invalid-argument"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Company ID and OAuth code are required"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details",
+            "additionalProperties": true
+          }
+        }
+      },
+      "SquareLocation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Square location ID",
+            "example": "location_123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Location name",
+            "example": "Main Store"
+          }
+        }
+      },
+      "EmployeeSearchResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Square employee ID",
+            "example": "employee_123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Employee full name",
+            "example": "John Doe"
+          }
+        }
+      },
+      "SquareSettings": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Square access token"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Token expiration timestamp"
+          },
+          "merchantId": {
+            "type": "string",
+            "description": "Square merchant ID"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Square refresh token"
+          },
+          "locationID": {
+            "type": "string",
+            "description": "Selected Square location ID"
+          },
+          "requiresReauth": {
+            "type": "boolean",
+            "description": "Whether re-authentication is required"
+          },
+          "csrfToken": {
+            "type": "string",
+            "description": "CSRF token for security"
+          }
+        }
+      },
+      "SquareOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Order ID"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Order creation timestamp"
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Order closure timestamp"
+          },
+          "totalMoney": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "description": "Amount in smallest currency unit"
+              },
+              "currency": {
+                "type": "string",
+                "description": "Currency code"
+              }
+            }
+          },
+          "tenders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["CASH", "CARD", "OTHER"]
+                },
+                "tipMoney": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "integer"
+                    },
+                    "currency": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "employeeId": {
+            "type": "string",
+            "description": "Associated employee ID"
+          }
+        }
+      },
+      "MonthlySales": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Month in YYYY-MM format",
+            "example": "2024-01"
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SquareOrder"
+            }
+          }
+        }
+      },
+      "SquareInvoice": {
+        "type": "object",
+        "properties": {
+          "carrierEmployeeId": {
+            "type": "string",
+            "description": "Employee ID who carried the order"
+          },
+          "closeLocalTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Order close time in local timezone"
+          },
+          "openLocalTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Order open time in local timezone"
+          },
+          "paidByCash": {
+            "type": "integer",
+            "description": "Whether order was paid by cash (1) or other method (0)"
+          },
+          "sellingEmployeeId": {
+            "type": "string",
+            "description": "Employee ID who sold the order"
+          },
+          "tipsTotalAmount": {
+            "type": "number",
+            "description": "Total tips amount"
+          },
+          "total": {
+            "type": "number",
+            "description": "Total order amount"
+          }
+        }
+      },
+      "SalesActual": {
+        "type": "object",
+        "properties": {
+          "morningSales": {
+            "type": "number",
+            "description": "Sales before 5 PM"
+          },
+          "endOfDaySales": {
+            "type": "number",
+            "description": "Total sales for the day"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Firebase custom token for authentication"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "externalDocs": {
+    "description": "Square Integration Documentation",
+    "url": "https://pivot.com/docs/square-integration"
+  }
+}

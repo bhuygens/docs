@@ -15,14 +15,18 @@
     },
     "servers": [
       {
-        "url": "https://us-central1-pivot-app.cloudfunctions.net",
-        "description": "Production Firebase Functions server"
-      },
-      {
-        "url": "https://us-central1-pivot-dev.cloudfunctions.net",
-        "description": "Development Firebase Functions server"
-      }
-    ],
+          "url": "https://us-central1-pivot-app.cloudfunctions.net",
+          "description": "Production Firebase Functions server"
+        },
+        {
+          "url": "https://us-central1-pivot-not-production-project.cloudfunctions.net/",
+          "description": "Development Firebase Functions server"
+        },
+        {
+          "url": "http://localhost:5001/pivot-not-production-project/us-central1/",
+          "description": "Localhost"
+        }
+  ],
     "tags": [
       {
         "name": "Sales Data",

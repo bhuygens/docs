@@ -1,0 +1,208 @@
+# Square Integration Guide
+
+Welcome to the Square integration guide! This guide will help you assist customers with connecting their Square POS system to Pivot for employee and sales data synchronization.
+
+## What is Square?
+
+Square is a popular Point of Sale (POS) system that provides payment processing and business management tools. When integrated with Pivot, it allows businesses to:
+
+- **Sync employee data** between their Square POS and Pivot
+- **Track sales automatically** with hourly updates
+- **View historical sales data** for reporting and analysis
+- **Link POS employees** to Pivot profiles for better workforce management
+
+## Setting Up the Integration
+
+### How Customers Connect Square to Pivot
+
+The integration is initiated through Square's OAuth flow:
+
+<Steps>
+  <Step title="Log into Pivot">
+    The customer needs to access their Pivot account and navigate to Account
+    Settings → Integrations.
+  </Step>
+  <Step title="Find Square">
+    In the POS Systems section, locate the Square integration card and click
+    "Connect".
+  </Step>
+  <Step title="Authorize with Square">
+    They'll be redirected to Square's authorization page where they need to log
+    in and grant Pivot access to their account.
+    <Warning>
+      The customer must complete the authorization within the session timeout
+      period.
+    </Warning>
+  </Step>
+  <Step title="Select Location">
+    If they have multiple Square locations, they'll be prompted to select which
+    one to connect to Pivot.
+  </Step>
+  <Step title="Confirmation">
+    Once completed, they'll be redirected back to Pivot with a success message.
+    The integration is now active and will begin syncing data automatically.
+  </Step>
+</Steps>
+
+<Tip>
+  If the customer has multiple Square locations, they can only connect one
+  location per Pivot company. For multiple locations, they'll need separate
+  Pivot companies.
+</Tip>
+
+## Managing Employees
+
+### Linking Employees to Square
+
+Once the integration is set up, customers can link their Pivot employees to their Square POS profiles:
+
+<Steps>
+  <Step title="Go to Employee Profile">
+    Navigate to any employee's profile in Pivot.
+  </Step>
+  <Step title="Find Square ID Field">
+    Look for the "Square ID" field in the employee information section.
+  </Step>
+  <Step title="Search for Employee">
+    Click on the field and type at least 3 letters of the employee's name as it
+    appears in Square.
+  </Step>
+  <Step title="Select from Results">
+    A dropdown will appear with matching employees from Square. Select the
+    correct employee.
+  </Step>
+  <Step title="Save">
+    The Square ID will be saved automatically, linking the two profiles.
+  </Step>
+</Steps>
+
+<Info>
+  The search looks for matches in both first and last names. If an employee
+  isn't found, verify their name is entered correctly in Square.
+</Info>
+
+## Sales Data
+
+### Understanding Sales Synchronization
+
+Pivot automatically collects sales data from Square to help with labor cost analysis and reporting:
+
+- **Hourly Updates**: Sales data is collected every hour automatically
+- **Timezone Aware**: Data is synced based on the company's timezone setting
+- **Historical Data**: Past sales data is imported during initial setup
+- **Completed Orders Only**: Only completed orders are synced to ensure accurate reporting
+
+### Viewing Sales Data
+
+Customers can view their Square sales data in Pivot through:
+
+1. **Dashboard**: Real-time sales appear on the main dashboard
+2. **Reports**: Detailed sales reports under the Analytics section
+3. **Labor Cost Analysis**: Sales vs. labor cost comparisons in the Payroll section
+
+<Note>
+  Sales data typically appears within an hour of transactions being completed in
+  Square.
+</Note>
+
+## Disconnecting the Integration
+
+### Disconnect from Pivot
+
+Customers can remove the integration directly from Pivot:
+
+<Steps>
+  <Step title="Go to Settings">
+    Navigate to Account Settings → Integrations.
+  </Step>
+  <Step title="Find Square">
+    Locate the Square card in the POS Systems section.
+  </Step>
+  <Step title="Click Disconnect">
+    Click the "Disconnect" button on the Square card.
+  </Step>
+  <Step title="Confirm">
+    Confirm the disconnection when prompted. This removes the integration from
+    Pivot.
+  </Step>
+</Steps>
+
+<Warning>
+  Disconnecting the integration will stop all data synchronization. Historical
+  data already in Pivot will remain, but no new data will be imported.
+</Warning>
+
+## Troubleshooting Common Issues
+
+### "Authorization Failed" Error
+
+If a customer sees this error during setup:
+
+- They need to ensure they're logged into the correct Square account
+- Check that they have admin permissions for the Square location
+- Try the authorization process again from the beginning
+
+### Employees Not Appearing in Search
+
+If employees aren't found when searching:
+
+- Verify employees exist in the Square POS system
+- Check that names are spelled correctly
+- Ensure the integration shows as "Connected" in settings
+- Wait a few minutes for initial sync if just connected
+
+### Sales Data Not Updating
+
+If sales aren't appearing in Pivot:
+
+- Confirm transactions exist in Square for that time period
+- Check the integration status in Account Settings
+- Verify the company timezone is set correctly in both systems
+- Allow up to 1 hour for new sales to appear
+
+### Integration Shows as Disconnected
+
+If the integration appears disconnected:
+
+- Check if the Square access token has expired
+- Verify the Square account is still active
+- Re-authorize the integration if needed
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Can I connect multiple Square locations?">
+    Each Pivot company can connect to one Square location. For multiple
+    locations, you'll need separate Pivot companies for each.
+  </Accordion>
+  <Accordion title="How far back can I import sales data?">
+    Pivot can import up to one year of historical sales data from Square. This
+    happens automatically during the initial setup.
+  </Accordion>
+  <Accordion title="Do I need to map all employees?">
+    Yes, it's mandatory to map all employees. If not, you won't be able to
+    export the payroll
+  </Accordion>
+  <Accordion title="What happens to my data if I disconnect?">
+    All historical data remains in Pivot. Only new data synchronization stops.
+    You can reconnect anytime to resume syncing.
+  </Accordion>
+  <Accordion title="Does Square integration work with all Square plans?">
+    The integration works with most Square plans, but requires admin access to
+    the Square account for proper authorization.
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+If customers need additional assistance:
+
+- **Authentication issues :** Check the status code sent on slack (support channel)`https://developer.squareup.com/docs/build-basics/general-considerations/handling-errors#authentication-errors`
+- **For Square issues :** Contact Square support directly via the dev console: `https://developer.squareup.com/console/en/apps`. Check credentials with Ben
+- **For Pivot issues :** Contact the dev team
+- **For integration setup :** Follow this guide or contact Pivot support
+
+<Note>
+  Remember that the integration requires proper Square account permissions and
+  active subscriptions in both Pivot and Square systems to function properly.
+</Note>
