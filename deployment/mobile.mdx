@@ -1,0 +1,31 @@
+iOS Dependencies Installation & Staging Deployment Steps
+Prerequisites
+Node.js >= 18
+Xcode (latest version)
+iOS Simulator or physical device
+Apple Developer Account
+Fastlane setup
+
+1. Install System Dependencies
+
+macOS System Requirements
+# Install Xcode Command Line Tools
+xcode-select --install
+
+# Install Homebrew (if not installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install CocoaPods
+sudo gem install cocoapods
+
+# Install Fastlane
+sudo gem install fastlane
+
+2. Install Project Dependencies
+Node.js Dependencies
+# Install Node.js dependencies
+npm install
+
+# Install iOS-specific dependencies
+cd ios && pod install && cd ..
+iOS Specific Setup

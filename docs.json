@@ -71,6 +71,15 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Deployment",
+        "groups": [
+          {
+            "group": "Deployment",
+            "pages": ["deployment/backend"]
+          }
+        ]
       }
     ]
   },

@@ -1,0 +1,196 @@
+---
+title: "Backend process checklist"
+description: "A pragmatic, environment-aware checklist to build, test, secure, and deploy backend functions."
+---
+
+This checklist codifies how our backend (Firebase Functions) should be developed, verified, and deployed across environments.
+
+Use it top-to-bottom when preparing changes for dev/not-prod/prod.
+
+## Quick checklist
+
+- Envs selected correctly (dev / not-prod / prod)
+- Secrets exist in GCP Secret Manager and are accessible
+- Local `.env` generated from secrets (for emulator/dev)
+- Type-checks pass (`tsc --noEmit`)
+- ESLint passes (including no unused vars)
+- Prettier formatting clean
+- Unit tests pass (Jest)
+- Build succeeds
+- Deploy to intended project only
+- Logs and Rollbar clean after deploy
+
+---
+
+## Environments
+
+- **Projects**
+  - dev/not-prod: GCP non-production projects
+  - prod: `pivot-inc`
+- **Functions node version**: Node 20 (see `functions/package.json -> engines.node`)
+
+## Prerequisites
+
+- Node 20 installed
+- Firebase CLI installed and logged in
+- Access to GCP projects, Secret Manager and KMS
+- Local service account JSON for non-prod where required (stored securely)
+
+## Secrets management
+
+Expected secret names are defined in `functions/env/env-variables.enum.ts`.
+
+### 1. Push new secrets to GCP
+
+```bash
+cd functions
+npx ts-node ./migrations/core/upload-secrets.ts
+```
+
+### 2. To generate a local `.env`:
+
+```bash
+cd functions
+# Default script targets not-prod by setting NODE_ENV=staging
+npm run generate-env
+
+# Alternative: target a specific env explicitly
+NODE_ENV=dev npx ts-node ./env/generate-env.ts
+NODE_ENV=staging npx ts-node ./env/generate-env.ts
+NODE_ENV=prod npx ts-node ./env/generate-env.ts
+```
+
+- Verify that the script logs `✓ Retrieved ...` for all required secrets. Any `⚠ Failed to retrieve` must be resolved before proceeding.
+
+## Local development
+
+- Start functions only
+
+```bash
+cd functions
+npm start
+```
+
+- Start full emulators suite (functions, auth, database, pubsub):
+  - Don't forget to update the config.ts file to point to your emulator
+
+```bash
+cd functions
+npm run watch
+npm run start-all
+```
+
+## Code quality gates
+
+- Type-check (no emit):
+
+```bash
+cd functions
+npm run type-check
+```
+
+- ESLint (includes TypeScript rules and Prettier integration):
+
+```bash
+cd functions
+npm run lint
+```
+
+- Prettier (format or check):
+
+```bash
+# Check formatting (repository-wide example)
+npx prettier --check "**/*.{ts,tsx,js,json,md,mdx}"
+
+# Auto-format
+npx prettier --write "**/*.{ts,tsx,js,json,md,mdx}"
+```
+
+- Unit tests:
+
+```bash
+cd functions
+npm test
+```
+
+## Build
+
+The build runs lint + type-check before bundling:
+
+```bash
+cd functions
+npm run build
+```
+
+Proceed only if build completes successfully.
+
+## Deployment
+
+Always confirm the target Firebase project first.
+
+- Not-prod:
+
+```bash
+cd functions
+npm run deploy-staging
+```
+
+- Development
+
+```bash
+cd functions
+npm run deploy-development
+```
+
+- Adjust the script if additional functions must be deployed from dev.
+- Production (deploy all functions):
+
+```bash
+cd functions
+npm run deploy
+```
+
+## Post-deploy verification
+
+- Tail logs to ensure cold starts and handlers succeed:
+
+```bash
+cd functions
+npm run logs
+```
+
+- Verify Rollbar reports are clean for the new release.
+
+## Scheduled jobs and migrations
+
+- If changes affect scheduled functions, redeploy and verify schedules are active in the target project.
+- Run one-off migrations when required:
+
+```bash
+cd functions
+npm run migrate
+```
+
+## Troubleshooting
+
+- Secret not found or permission denied
+  - Ensure the service account used by the function has `Secret Manager Secret Accessor` on the correct project.
+  - Confirm the secret exists for the environment and has at least one version.
+- Deploy targets the wrong project
+  - Check `firebase use` and the `-P` flag inside the deploy scripts.
+- Emulator uses wrong env
+  - Regenerate `.env` for the intended environment using the explicit `NODE_ENV=...` variant.
+
+---
+
+## Pre-merge gate
+
+- Correct environment chosen and documented in the PR
+- All required secrets exist and `.env` can be generated without warnings
+- `npm run type-check` passes
+- `npm run lint` passes (no unused vars)
+- Prettier check passes or code formatted
+- `npm test` passes
+- `npm run build` completes
+- Deploy command for target environment selected and verified
+- Logs and Rollbar checked after deploy
