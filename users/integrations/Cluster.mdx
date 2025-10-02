@@ -1,0 +1,143 @@
+# Cluster Integration Guide
+
+Welcome to the Cluster integration guide! This document explains how Pivot connects with Cluster to manage your POS (Point of Sale) data and sales tracking.
+
+## What is Cluster Integration?
+
+Cluster integration enables seamless connection between your Pivot account and Cluster POS system. This integration provides:
+
+- **Automated sales data synchronization** from Cluster to Pivot
+- **Daily sales tracking** with morning and end-of-day calculations
+- **Historical data import** for up to 12 months of sales data
+- **Real-time POS connection verification**
+
+## Setting Up Cluster Integration
+
+<Steps>
+  <Step title="Access Integration Settings">
+    Navigate to Account Settings > Integrations and locate the Cluster card in
+    the POS Systems section.
+  </Step>
+  <Step title="Gather Credentials">
+    You'll need two pieces of information from your Cluster system: - Cluster
+    API Key - POS Serial Number
+  </Step>
+  <Step title="Connect Cluster">
+    Click "Connect" on the Cluster integration card and enter your credentials:
+    1. Enter your Cluster API Key 2. Enter your POS Serial Number 3. Click
+    "Verify" to test the connection 4. Save the integration once verified
+  </Step>
+</Steps>
+
+<Note>
+  The system will automatically verify your credentials by making a test
+  connection to your Cluster POS. You must see a success message before
+  proceeding.
+</Note>
+
+## Initial Data Sync
+
+When you first connect Cluster, Pivot automatically:
+
+1. Validates your POS credentials
+2. Imports the last 12 months of sales data
+3. Processes and stores daily sales totals
+4. Sets up ongoing synchronization
+
+<Warning>
+  The initial sync may take several minutes to complete as it processes a full
+  year of historical data.
+</Warning>
+
+## Daily Sales Synchronization
+
+Once connected, Pivot automatically syncs with Cluster:
+
+- **Frequency**: Hourly checks for new sales data
+- **Business Day**: Runs from 5 AM to 5 AM the next day
+- **Data Points Tracked**:
+  - Morning sales totals
+  - End-of-day sales totals
+  - Transaction counts
+  - Sales by category
+
+## Technical Details
+
+### API Endpoints
+
+Pivot communicates with Cluster through these endpoints:
+
+```bash
+# Check if POS is up
+POST /ping-pos
+
+# Fetch Sales Data & daily sync
+GET /sales-data
+`SELECT * FROM orders
+        WHERE Date >= '${startDate}'
+        AND Date <= '${endDate}'
+        ORDER BY Date DESC`
+```
+
+### Business Logic
+
+- Sales are grouped by business day (5 AM to 5 AM)
+- Transactions before 5 AM are counted with the previous day
+- Sales data is processed and stored in standardized format
+
+### Automated Jobs
+
+The integration includes several automated processes:
+
+```typescript
+// Hourly sales sync
+schedule("0 * * * *");
+
+// Initial historical data import
+timeoutSeconds: 540; // 9 minutes
+memory: "1GB";
+```
+
+## Troubleshooting
+
+If you encounter issues with the Cluster integration:
+
+<Steps>
+<Step title="Check Connection Status">
+  - Verify API Key and Serial are correct
+  - Test connection using the "Verify" button
+  - Check Cluster POS system is online
+</Step>
+
+<Step title="Common Issues">
+  ### "Failed to verify cluster settings"
+  - Verify API key is active and has correct permissions
+  - Confirm POS serial number matches your system
+  - Check network connectivity to Cluster servers
+
+</Step>
+
+<Step title="Resolution Steps">
+  1. Re-verify credentials in Account Settings
+  2. Check Cluster POS status
+  3. Contact support if issues persist via their website
+</Step>
+</Steps>
+
+## Data Security
+
+The Cluster integration maintains security through:
+
+- Encrypted API key storage
+- Secure HTTPS communications
+- Regular credential validation
+- Isolated data storage per company
+
+## Support
+
+If you need assistance with your Cluster integration:
+
+- **Technical Support**: Contact Pivot support team
+- **Cluster API Issues**: Contact the cluster support on this url: https://api.clusterpos.com/dashboard
+- **Documentation**: Accessible here: https://api.clusterpos.com/dashboard
+

@@ -45,6 +45,12 @@
             "icon": "pen-to-square",
             "pages": [
               {
+                "group": "Cluster",
+                "openapi": {
+                  "source": "/api/integrations/pos/cluster-openapi.json"
+                }
+              },
+              {
                 "group": "Lightspeed",
                 "openapi": {
                   "source": "/api/integrations/pos/lightspeed-openapi.json"

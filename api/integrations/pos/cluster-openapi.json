@@ -1,0 +1,230 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Cluster Integration API",
+      "description": "API for integrating Pivot with Cluster POS systems. This API provides endpoints for POS verification, sales data synchronization, and automated daily sales tracking.",
+      "version": "1.0.0",
+      "contact": {
+        "name": "Pivot Support",
+        "email": "support@pivot.com"
+      },
+      "license": {
+        "name": "Proprietary",
+        "url": "https://pivot.com/terms"
+      }
+    },
+    "servers": [
+      {
+        "url": "https://us-central1-pivot-app.cloudfunctions.net",
+        "description": "Production Firebase Functions server"
+      },
+      {
+        "url": "https://us-central1-pivot-not-production-project.cloudfunctions.net/",
+        "description": "Development Firebase Functions server"
+      },
+      {
+        "url": "http://localhost:5001/pivot-not-production-project/us-central1/",
+        "description": "Localhost"
+      }
+    ],
+    "tags": [
+      {
+        "name": "POS Management",
+        "description": "POS connection and verification"
+      }
+    ],
+    "paths": {
+      "/verifyClusterSettings": {
+        "post": {
+          "tags": [
+            "POS Management"
+          ],
+          "summary": "Verify Cluster POS connection",
+          "description": "Verifies the connection to a Cluster POS system using API key and serial number. Tests connectivity by sending a ping request.",
+          "operationId": "verifyClusterSettings",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "serial",
+                    "apiKey"
+                  ],
+                  "properties": {
+                    "serial": {
+                      "type": "string",
+                      "description": "Cluster POS serial number",
+                      "example": "POS123456"
+                    },
+                    "apiKey": {
+                      "type": "string",
+                      "description": "Cluster API key",
+                      "example": "cluster_api_key_123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Connection verification result",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/VerificationResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request - missing required parameters",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error or Cluster API error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Error code",
+              "example": "invalid-argument"
+            },
+            "message": {
+              "type": "string",
+              "description": "Error message",
+              "example": "Missing required parameters"
+            },
+            "details": {
+              "type": "object",
+              "description": "Additional error details",
+              "additionalProperties": true
+            }
+          }
+        },
+        "VerificationResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "description": "Whether verification was successful",
+              "example": true
+            },
+            "message": {
+              "type": "string",
+              "description": "Verification result message",
+              "example": "Cluster settings verified successfully"
+            }
+          }
+        },
+        "ClusterSale": {
+          "type": "object",
+          "properties": {
+            "Date": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Sale date and time",
+              "example": "2024-01-01T10:30:00Z"
+            },
+            "Amount": {
+              "type": "number",
+              "description": "Sale amount",
+              "example": 125.50
+            },
+            "TransactionID": {
+              "type": "string",
+              "description": "Unique transaction identifier",
+              "example": "TXN123456"
+            },
+            "Status": {
+              "type": "number",
+              "description": "Transaction status code",
+              "example": 1
+            }
+          }
+        },
+        "ClusterSettings": {
+          "type": "object",
+          "properties": {
+            "companyId": {
+              "type": "string",
+              "description": "Company ID in Pivot",
+              "example": "company123"
+            },
+            "posApiKey": {
+              "type": "string",
+              "description": "Cluster API key",
+              "example": "cluster_api_key_123"
+            },
+            "posSerial": {
+              "type": "string",
+              "description": "POS serial number",
+              "example": "POS123456"
+            }
+          }
+        },
+        "DailySales": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date",
+              "description": "Business day date",
+              "example": "2024-01-01"
+            },
+            "morningSales": {
+              "type": "number",
+              "description": "Total sales from opening until noon",
+              "example": 1250.75
+            },
+            "endOfDaySales": {
+              "type": "number",
+              "description": "Total sales for the entire business day",
+              "example": 3500.25
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "description": "Firebase custom token for authentication"
+        }
+      }
+    },
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "externalDocs": {
+      "description": "Cluster Integration Documentation",
+      "url": "https://pivot.com/docs/cluster-integration"
+    }
+  }
+  
