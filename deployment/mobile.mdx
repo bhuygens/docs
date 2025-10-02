@@ -1,31 +1,285 @@
-iOS Dependencies Installation & Staging Deployment Steps
-Prerequisites
-Node.js >= 18
-Xcode (latest version)
-iOS Simulator or physical device
-Apple Developer Account
-Fastlane setup
+---
+title: "Mobile"
+description: "A comprehensive guide for building, testing, and deploying the Pivot mobile app for iOS and Android across environments"
+---
 
-1. Install System Dependencies
+## Quick Reference Commands
 
-macOS System Requirements
-# Install Xcode Command Line Tools
-xcode-select --install
+<CardGroup cols={2}>
+  <Card title="Staging Deployment" icon="flask">
+    ```bash
+    # iOS Staging
+    npm run deploy-ios-staging
+    
+    # Android Staging
+    npm run deploy-android-staging
+    ```
+  </Card>
+  
+  <Card title="Production Deployment" icon="rocket">
+    ```bash
+    # iOS Production
+    npm run deploy-ios-prod
+    
+    # Android Production
+    npm run deploy-android-prod
+    ```
+  </Card>
+</CardGroup>
 
-# Install Homebrew (if not installed)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+## Required Authentication Files
 
-# Install CocoaPods
-sudo gem install cocoapods
+<Warning>
+These authentication files are crucial for deployment and must be properly configured. Never commit these files to version control!
+</Warning>
 
-# Install Fastlane
-sudo gem install fastlane
+<AccordionGroup>
+  <Accordion title="iOS Authentication">
+    ### App Store Connect API Keys
+    Two separate keys are required:
 
-2. Install Project Dependencies
-Node.js Dependencies
-# Install Node.js dependencies
-npm install
+    ```bash
+    fastlane/
+    ├── prod_auth_key.p8    # Production deployments
+    └── qa_auth_key.p8      # TestFlight/Beta deployments
+    ```
 
-# Install iOS-specific dependencies
-cd ios && pod install && cd ..
-iOS Specific Setup
+    <CodeGroup>
+    ```ruby Staging Configuration
+    app_store_connect_api_key(
+      key_id: 'G29C8F9P69',
+      issuer_id: '69a6de95-eb63-47e3-e053-5b8c7c11a4d1',
+      key_filepath: './fastlane/qa_auth_key.p8'
+    )
+    ```
+
+    ```ruby Production Configuration
+    app_store_connect_api_key(
+      key_id: 'T945WQ6TJQ',
+      issuer_id: '69a6de95-eb63-47e3-e053-5b8c7c11a4d1',
+      key_filepath: './fastlane/prod_auth_key.p8'
+    )
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Android Authentication">
+    ### Google Play Console Authentication
+    Required for Android deployments:
+    ```ruby
+    json_key_file("./pivot-inc-656b450b7a70.json")
+    package_name("com.pivot3")
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Development Workflow
+
+<Steps>
+<Step title="Environment Setup">
+  Set the active environment:
+
+  ```bash
+  # Development
+  npm run set-dev
+  
+  # Staging
+  npm run set-stage
+  
+  # Production
+  npm run set-prod
+  ```
+
+  <Note>
+  These commands update `./src/active.env.js` with the appropriate environment.
+  </Note>
+</Step>
+
+<Step title="Local Development">
+  ### iOS Development
+  ```bash
+  # Run on device with cache reset
+  npm run start-ios-device
+  
+  # Development environment
+  npm run ios-dev
+  
+  # Production environment
+  npm run ios-prod
+  ```
+
+  ### Android Development
+  ```bash
+  # Development environment
+  npm run android-dev
+  
+  # Production environment
+  npm run android-prod
+  ```
+</Step>
+
+<Step title="Testing Builds">
+  ### Android APK Installation
+  ```bash
+  # Install staging build
+  npm run android-install-staging
+  
+  # Install release build
+  npm run android-install-release
+  ```
+</Step>
+</Steps>
+
+## Deployment Process
+
+<Steps>
+<Step title="Pre-deployment Setup">
+  1. Git SHA is added to builds for tracking:
+  ```bash
+  npm run add-git-sha
+  ```
+
+  2. Verify environment and authentication files:
+  ```bash
+  # Check environment
+  cat ./src/active.env.js
+  
+  # Verify auth files
+  ls fastlane/qa_auth_key.p8    # For staging
+  ls fastlane/prod_auth_key.p8  # For production
+  ```
+</Step>
+
+<Step title="Staging Deployment">
+  ### iOS Staging
+  ```bash
+  npm run deploy-ios-staging
+  ```
+  This command:
+  - Sets staging environment
+  - Adds Git SHA for version tracking
+  - Runs Fastlane iOS beta lane
+  - Uploads source maps to Rollbar
+
+  ### Android Staging
+  ```bash
+  npm run deploy-android-staging
+  ```
+  This command:
+  - Sets staging environment
+  - Adds Git SHA
+  - Builds staging APK (`assembleQaRelease`)
+  - Runs Fastlane Android beta lane
+  - Uploads source maps for QA debug build
+</Step>
+
+<Step title="Production Deployment">
+  ### iOS Production
+  ```bash
+  npm run deploy-ios-prod
+  ```
+  This command:
+  - Sets production environment
+  - Adds Git SHA
+  - Runs Fastlane iOS release lane with UTF-8 encoding
+  - Uploads production source maps
+
+  ### Android Production
+  ```bash
+  npm run deploy-android-prod
+  ```
+  This command:
+  - Sets production environment
+  - Adds Git SHA
+  - Runs Fastlane Android playstore lane
+  - Uploads production source maps
+</Step>
+
+<Step title="Source Maps Management">
+  Source maps are automatically handled:
+
+  ```bash
+  # iOS source maps
+  npm run upload-ios-maps
+  
+  # Android source maps
+  npm run upload-android-maps [path-to-map]
+  ```
+</Step>
+</Steps>
+
+## Environment-Specific Configurations
+
+<AccordionGroup>
+  <Accordion title="Firebase Setup">
+    ### iOS
+    - Development: `GoogleService-Info-development.plist`
+    - Production: `GoogleService-Info-production.plist`
+    
+    Files are automatically copied during build:
+    ```bash
+    cp ./ios/firebase/GoogleService-Info-[environment].plist ./ios/pivot3/GoogleService-Info.plist
+    ```
+
+    ### Android
+    Build variants handle Firebase config:
+    - `devDebug` for development
+    - `prodDebug` for production testing
+    - `prodRelease` for store releases
+  </Accordion>
+
+  <Accordion title="Build Variants">
+    ### Android Build Types
+    - QA Debug: Development testing
+    - QA Release: Staging deployments
+    - Prod Debug: Production testing
+    - Prod Release: Store releases
+
+    ### iOS Build Configurations
+    - Debug: Development builds
+    - Release: TestFlight/App Store builds
+  </Accordion>
+</AccordionGroup>
+
+## Pre-release Checklist
+
+<Steps>
+<Step title="Environment Verification">
+  - [ ] Correct environment set (`npm run set-[env]`)
+  - [ ] Firebase configuration matches environment
+  - [ ] API endpoints configured correctly
+  - [ ] Git SHA added for version tracking
+  - [ ] Authentication files in place
+</Step>
+
+<Step title="Build Verification">
+  - [ ] All dependencies installed (`npm install`)
+  - [ ] TypeScript checks pass
+  - [ ] ESLint passes (`npm run lint`)
+  - [ ] Tests pass (`npm test`)
+</Step>
+
+<Step title="Platform-Specific Checks">
+  ### iOS
+  - [ ] Correct provisioning profiles synced
+  - [ ] Certificates valid
+  - [ ] Correct GoogleService-Info.plist
+  - [ ] Bundle ID matches environment
+  - [ ] Auth keys present and valid
+
+  ### Android
+  - [ ] Correct build variant selected
+  - [ ] Keystore available
+  - [ ] Version code incremented
+  - [ ] google-services.json matches environment
+  - [ ] Play Store JSON key in place
+</Step>
+
+<Step title="Post-Deploy Verification">
+  - [ ] Source maps uploaded successfully
+  - [ ] Rollbar reporting correctly
+  - [ ] Firebase services working
+  - [ ] Push notifications functional
+  - [ ] Deep links working
+</Step>
+</Steps>

@@ -83,7 +83,7 @@
         "groups": [
           {
             "group": "Deployment",
-            "pages": ["deployment/backend", "deployment/frontend"]
+            "pages": ["deployment/backend", "deployment/frontend", "deployment/mobile"]
           }
         ]
       }
