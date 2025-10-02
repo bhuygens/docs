@@ -1,0 +1,209 @@
+---
+title: Frontend deployment checklist
+description: A comprehensive guide for building, testing, and deploying the Pivot frontend across environments.
+---
+
+This checklist outlines how our React frontend should be developed, verified, and deployed across environments.
+
+Use it top-to-bottom when preparing changes for development/staging/production.
+
+## Quick checklist
+
+- [ ] Environment variables set correctly (.env.{development,staging,production})
+- [ ] Dependencies installed and up-to-date
+- [ ] TypeScript type-checks pass
+- [ ] ESLint passes (no unused vars/imports)
+- [ ] Prettier formatting clean
+- [ ] SCSS builds without errors
+- [ ] Unit tests pass (Jest)
+- [ ] Build succeeds
+- [ ] Source maps handled correctly
+- [ ] Deploy to intended Firebase hosting project only
+- [ ] Rollbar clean after deploy
+
+---
+
+## Environments
+
+- **Projects**
+  - development: Development Firebase project
+  - staging (default): Not-prod Firebase project
+  - production: Production Firebase project
+
+- **Node version**: Check engines field in package.json
+- **Environment files**: 
+  - `.env.development`
+  - `.env.staging`
+  - `.env.production`
+
+## Prerequisites
+
+- Node.js installed (version matching package.json engines)
+- Firebase CLI installed and logged in
+- Access to all Firebase projects
+- Environment files configured
+- `sass` installed for SCSS compilation
+
+## Environment setup
+
+- Environment variables are loaded based on `REACT_APP_NODE_ENV`:
+  - development: `.env.development`
+  - staging: `.env.staging`
+  - production: `.env.production`
+
+- Verify environment file exists for your target environment before starting
+
+## Local development
+
+- Start development server against staging (default):
+
+```bash
+npm start
+```
+
+- Start against production environment:
+
+```bash
+npm run start-prod
+```
+
+## Code quality gates
+
+- SCSS compilation:
+
+```bash
+npm run build-css
+```
+
+- Type checking:
+
+```bash
+# TypeScript checks are part of the build process
+npm run build
+```
+
+- ESLint:
+  - Configured in package.json under "eslintConfig"
+  - Extends "react-app" defaults
+
+- Prettier:
+
+```bash
+# Check formatting
+npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,scss,md}"
+
+# Auto-format
+npx prettier --write "src/**/*.{ts,tsx,js,jsx,json,css,scss,md}"
+```
+
+- Unit tests:
+
+```bash
+npm test
+```
+
+## Build
+
+The build process includes:
+1. SCSS compilation
+2. TypeScript compilation
+3. Asset optimization
+4. Source map generation
+
+```bash
+# Build for staging
+npm run build-for-staging
+
+# Build for production (includes source map handling)
+REACT_APP_NODE_ENV=production REACT_APP_GIT_SHA=`git rev-parse HEAD` npm run build
+```
+
+## Source Maps
+
+For production, source maps are:
+1. Generated during build
+2. Moved to sourceMaps/ directory
+3. Uploaded to Rollbar for error tracking
+
+```bash
+npm run upload-source-maps
+```
+
+## Deployment
+
+Always verify the target Firebase project first with `firebase use`.
+
+- Deploy to staging (default project):
+
+```bash
+npm run deploy-staging
+```
+
+- Deploy to development:
+
+```bash
+npm run deploy-development
+```
+
+- Deploy to production (includes source map handling):
+
+```bash
+npm run deploy
+```
+
+The production deploy script:
+1. Sets production env and build timestamp
+2. Builds the application
+3. Handles source maps
+4. Deploys to Firebase hosting
+5. Updates Firebase version
+
+## Post-deploy verification
+
+1. Verify the application loads in the browser
+2. Check critical user flows
+3. Monitor Rollbar for any new errors
+4. Verify environment variables are correct
+5. Check Firebase hosting version
+
+## Troubleshooting
+
+- Build fails on SCSS
+  - Run `npm run build-css` separately to isolate SCSS errors
+  - Check for missing SASS dependencies
+
+- Environment variables not loading
+  - Verify `.env.{environment}` file exists
+  - Check `REACT_APP_NODE_ENV` is set correctly
+  - Remember all env vars must start with `REACT_APP_`
+
+- Source maps not working
+  - For production: verify `upload-source-maps` completed
+  - Check Rollbar source map configuration
+  - Verify build process didn't fail midway
+
+- Deploy targets wrong project
+  - Check `firebase use` current project
+  - Verify `-P` flag in deploy commands
+  - Review `firebaseConfig` in your app
+
+- CSS not updating
+  - Clear browser cache
+  - Verify `watch-css` is running
+  - Check SCSS compilation errors
+
+---
+
+## Pre-merge gate (copy/paste)
+
+- [ ] Environment files validated for target environments
+- [ ] `npm run build-css` succeeds
+- [ ] TypeScript checks pass
+- [ ] ESLint passes
+- [ ] Prettier check passes or code formatted
+- [ ] `npm test` passes
+- [ ] Build succeeds for target environment
+- [ ] Source maps handled (if production)
+- [ ] Deploy command for target environment verified
+- [ ] Application loads and functions in browser
+- [ ] Rollbar reporting configured and clean
